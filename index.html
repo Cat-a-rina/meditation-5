@@ -1,0 +1,75 @@
+<body style="background: white"></body>
+<script src="https://cdn.jsdelivr.net/gh/netizenorg/netnet-standard-library/build/nn.min.js"></script>
+<script src="https://unpkg.com/tone"></script>
+<script src="https://algorithmicmusic.online/js/viz-helpers.js"></script>
+<script>
+/* global nn, Tone, viz */
+
+  
+// SOUND SOURCES + AUDIO GRAPH
+// ---------------------------
+// (your instruments and signal chain)
+  
+  
+  
+
+  
+// SETTING UP TONE TRANSPORT
+// --------------------------
+Tone.Transport.loop = true // loop the transport
+Tone.Transport.bpm.value = 120 // set your tempo/speed
+Tone.Transport.timeSignature = 4 // beats per measure/bar
+Tone.Transport.loopEnd = '2m' // how many measures/bars
+
+
+// FUNCTIONS
+// ----------
+function toggle () {
+  if (Tone.Transport.state === 'stopped') {
+    Tone.Transport.start()
+    this.content('stop')
+  } else {
+    Tone.Transport.stop()
+    this.content('start') // change button's text
+  }
+}
+
+function updateBPM () {
+  Tone.Transport.bpm.value = this.value
+}
+
+function play (time) {
+  // we can check the current beat with: Tone.Transport.position
+  // and we can convert position to an array of numbers like this
+  const pos = Tone.Transport.position.split(':').map(Number)
+  const bar = pos[0]
+  const beat = pos[1]
+  // update the label (for refernce)
+  beatLabel.content(`measure: ${bar}, beat: ${beat}`)
+  
+  // DECIDE WHAT/WHEN TO PLAY HERE
+  // ...
+}
+
+new Tone.Loop(play).start()
+
+// USER INTERFACE
+// ----------------
+nn.create('button')
+  .content('start')
+  .addTo('body')
+  .on('click', toggle)
+
+nn.create('input')
+  .set('type', 'number')
+  .set('value', Tone.Transport.bpm.value)
+  .addTo('body')
+  .on('change', updateBPM)
+
+nn.create('br').addTo('body')
+
+const beatLabel = nn.create('label')
+  .content('measure, beat')
+  .addTo('body')
+
+</script>
