@@ -8,7 +8,7 @@
 // ---------------------------
 // (your instruments and signal chain)  
 
-const cowbell_file = "cumbia-cowbell-fast_90bpm_F#_minor.mp3"
+const cowbell_file = "cumbia-cowbell.mp3"
 const guiro_file = "guiro-cumbia.mp3"
 
 const cowbell = new Tone.Player(cowbell_file).toDestination()
@@ -50,7 +50,7 @@ function updatePatternAndCuts(bar, beat) {
   pattern[bar][beat] = nn.randomInt(1)
   
   cuts[bar][beat] = {
-    offset: nn.random(0, player.buffer.duration),
+    offset: nn.random(0, cowbell.buffer.duration),
     duration: 60 / Tone.Transport.bpm.value
   }
 }
@@ -58,7 +58,7 @@ function updatePatternAndCuts(bar, beat) {
 function randomizePattern() {
   //stopping Transport = stop loops/sequence 
   Tone.Transport.stop()
-  ToggleButton.content('start')
+  toggleButton.content('start')
   cowbell.stop()
   guiro.stop()
   nn.times(2, m=> { //looping like a double for loop
