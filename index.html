@@ -4,26 +4,31 @@
 <script src="https://algorithmicmusic.online/js/viz-helpers.js"></script>
 <script>
 /* global nn, Tone, viz */
-
-  
 // SOUND SOURCES + AUDIO GRAPH
 // ---------------------------
-// (your instruments and signal chain)
-  
-  
-  
+// (your instruments and signal chain)  
+
+const cowbell_file = "cumbia-cowbell-fast_90bpm_F#_minor.wav"
+const guiro_file = "guiro-cumbia.wav"
+
+const cowbell = new Tone.Player(cowbell_file).toDestination()
+const guiro = new Tone.Player(guiro_file).toDestination()
 
   
 // SETTING UP TONE TRANSPORT
 // --------------------------
+let seq
+let pattern = []
+let cuts = []
 Tone.Transport.loop = true // loop the transport
-Tone.Transport.bpm.value = 120 // set your tempo/speed
+Tone.Transport.bpm.value = nn.randomInt(90, 300) // set your tempo/speed
 Tone.Transport.timeSignature = 4 // beats per measure/bar
 Tone.Transport.loopEnd = '2m' // how many measures/bars
 
 
 // FUNCTIONS
 // ----------
+
 function toggle () {
   if (Tone.Transport.state === 'stopped') {
     Tone.Transport.start()
@@ -31,6 +36,8 @@ function toggle () {
   } else {
     Tone.Transport.stop()
     this.content('start') // change button's text
+    cowbell.stop()
+    guiro.stop()
   }
 }
 
@@ -38,12 +45,53 @@ function updateBPM () {
   Tone.Transport.bpm.value = this.value
 }
 
+//select randint, apply it using this func?
+function updatePatternAndCuts(bar, beat) {
+  pattern[bar][beat] = nn.randomInt(1)
+  
+  cuts[bar][beat] = {
+    offset: nn.random(0, player.buffer.duration),
+    duration: 60 / Tone.Transport.bpm.value
+  }
+}
+  
+function randomizePattern() {
+  //stopping Transport = stop loops/sequence 
+  Tone.Transport.stop()
+  ToggleButton.content('start')
+  cowbell.stop()
+  guiro.stop()
+  nn.times(2, m=> { //looping like a double for loop
+    pattern[m] = []
+    cuts[m] = []
+    nn.times(4, b => updatePatternAndCuts(m, b))
+  })
+  //choosing random components!!
+  //random beats per minute (bpm)
+  Tone.Transport.bpm.value = nn.randomInt(90, 300)
+  
+  //random pace (playback rate)
+  cowbell.playbackRate = nn.random(0.5, 1.5)
+  guiro.playbackRate = nn.random(0.5, 1.5)
+  
+  //how does this update UI?
+  
+}
 function play (time) {
   // we can check the current beat with: Tone.Transport.position
   // and we can convert position to an array of numbers like this
   const pos = Tone.Transport.position.split(':').map(Number)
   const bar = pos[0]
   const beat = pos[1]
+  
+  const val = pattern[bar][beat]
+  const cut = cuts[bar][beat]
+  
+  //play
+  if (val){
+    cowbell.start(time, cut.offset, cut.duration)
+    guiro.start(time, cut.offset, cut.duration)
+  }
   // update the label (for refernce)
   beatLabel.content(`measure: ${bar}, beat: ${beat}`)
   
@@ -56,11 +104,16 @@ new Tone.Loop(play).start()
 // USER INTERFACE
 // ----------------
 nn.create('button')
+  .content('randomize')
+  .addTo('body')
+  .on('click',
+     randomizePattern)
+let toggleButton = nn.create('button')
   .content('start')
   .addTo('body')
   .on('click', toggle)
 
-nn.create('input')
+let bpmInput = nn.create('input')
   .set('type', 'number')
   .set('value', Tone.Transport.bpm.value)
   .addTo('body')
