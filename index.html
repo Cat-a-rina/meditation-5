@@ -13,6 +13,7 @@ const guiro_file = "guiro-cumbia.mp3"
 const timbal_file = "timbal-cumbia-short.mp3"
 const guitar_file = "cumbia-slapped-bass-guitar-D_minor.mp3"
 
+let instruments_lst = ['cowbell', 'guiro', 'timbal', 'guitar']
 const instruments = new Tone.Players({
   cowbell: cowbell_file,
   guiro: guiro_file,
@@ -50,10 +51,13 @@ function updateBPM () {
 
 //select randint, apply it using this func?
 function updatePatternAndCuts(bar, beat) {
+  let instrumIdx = nn.randomInt(0, 3)
+  let instrum = instruments_lst[instrumIdx]
+  console.log(instrum)
   pattern[bar][beat] = nn.randomInt(1)
   
   cuts[bar][beat] = {
-    offset: nn.random(0, guiro.buffer.duration),
+    offset: nn.random(0, instruments.player(instrum).buffer.duration),
     duration: 60 / Tone.Transport.bpm.value
   }
 }
@@ -63,7 +67,8 @@ function randomizePattern() {
   Tone.Transport.stop()
   toggleButton.content('start')
   
-  for (let inst in instruments) {
+  for (const inst of instruments_lst) {
+    console.log(instruments, inst)
     instruments.player(inst).stop()
   }
   
@@ -78,7 +83,7 @@ function randomizePattern() {
   
   //random pace (playback rate)
 
-  for (let inst in instruments) {
+  for (let inst of instruments_lst) {
     instruments.player(inst).playbackRate = nn.random(0.25, 1.25)
   }
   //how does this update UI?
@@ -90,12 +95,9 @@ function play (time) {
   const bar = pos[0]
   const beat = pos[1]
   
-  const val = pattern[bar][beat]
-  const cut = cuts[bar][beat]
-  
   //play
-  for (const inst in instruments) {
-    const val = patten[bar][beat]
+  for (const inst of instruments_lst) {
+    const val = pattern[bar][beat]
     const cut = cuts[bar][beat]
     if (val) instruments.player(inst).start(time, cut.offset, cut.duration)
   }
